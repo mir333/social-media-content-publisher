@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { PenSquare, Settings, Moon, Sun, Share2 } from 'lucide-react'
+import { PenSquare, Settings, Moon, Sun, Share2, Heart } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
@@ -72,6 +72,17 @@ export function AppHeader({
               </SelectContent>
             </Select>
           )}
+
+          <Button variant="ghost" size="sm" asChild>
+            <a
+              href="https://revolut.me/miroslqeu1?note=Donation"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Heart className="h-4 w-4 mr-1.5 text-pink-500" />
+              <span className="hidden sm:inline">Donate</span>
+            </a>
+          </Button>
 
           <Button
             variant="ghost"
