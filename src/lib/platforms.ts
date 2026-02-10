@@ -44,7 +44,8 @@ async function sha256Base64url(plain: string): Promise<string> {
 }
 
 export function getRedirectUri(platform: PlatformType): string {
-  return `${window.location.origin}/auth/callback/${platform}`
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  return `${window.location.origin}${base}/auth/callback/${platform}`
 }
 
 export async function publishPost(

@@ -1,4 +1,5 @@
 import path from "path"
+import fs from "fs"
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -42,8 +43,23 @@ function apiProxy(): Plugin {
   }
 }
 
+// Copy index.html → 404.html so GitHub Pages serves the SPA for all routes
+function spaFallback(): Plugin {
+  return {
+    name: 'spa-fallback',
+    closeBundle() {
+      const distIndex = path.resolve(__dirname, 'dist/index.html')
+      const dist404 = path.resolve(__dirname, 'dist/404.html')
+      if (fs.existsSync(distIndex)) {
+        fs.copyFileSync(distIndex, dist404)
+      }
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
+  base: process.env.GITHUB_PAGES ? '/social-media-content-publisher/' : '/',
   plugins: [
     react({
       babel: {
@@ -52,6 +68,7 @@ export default defineConfig({
     }),
     tailwindcss(),
     apiProxy(),
+    spaFallback(),
   ],
   resolve: {
     alias: {
