@@ -1,5 +1,7 @@
 export type PlatformType = 'linkedin' | 'x' | 'facebook' | 'instagram' | 'tiktok'
 
+export type MediaMode = 'text' | 'image' | 'video'
+
 export interface Connection {
   accessToken: string
   refreshToken?: string

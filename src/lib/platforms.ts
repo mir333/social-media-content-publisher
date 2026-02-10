@@ -79,11 +79,20 @@ export async function publishPost(
   platform: PlatformType,
   accessToken: string,
   text: string,
+  image?: string,
+  video?: string,
 ): Promise<{ id?: string; error?: string }> {
+  const body: Record<string, string> = { accessToken, text }
+  if (image) {
+    body.image = image
+  }
+  if (video) {
+    body.video = video
+  }
   const res = await fetch(`/api/post/${platform}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accessToken, text }),
+    body: JSON.stringify(body),
   })
   return res.json()
 }
