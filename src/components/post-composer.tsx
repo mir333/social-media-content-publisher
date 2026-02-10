@@ -10,7 +10,7 @@ import { Loader2, Send, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Profile, PlatformType, PostResult } from '@/types'
 import { PLATFORMS, publishPost } from '@/lib/platforms'
-import { PLATFORM_LIMITS } from '@/lib/constants'
+import { PLATFORM_LIMITS, MEDIA_ONLY_PLATFORMS } from '@/lib/constants'
 
 export function PostComposer({ profile }: { profile: Profile }) {
   const [content, setContent] = useState('')
@@ -150,11 +150,18 @@ export function PostComposer({ profile }: { profile: Profile }) {
                     ({profile.connections[platform]?.displayName})
                   </span>
                 </div>
-                {enabledPlatforms[platform] && content.length > PLATFORM_LIMITS[platform] && (
-                  <Badge variant="destructive" className="text-xs">
-                    Over limit
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {MEDIA_ONLY_PLATFORMS.has(platform) && (
+                    <Badge variant="outline" className="text-xs">
+                      Requires media
+                    </Badge>
+                  )}
+                  {enabledPlatforms[platform] && content.length > PLATFORM_LIMITS[platform] && (
+                    <Badge variant="destructive" className="text-xs">
+                      Over limit
+                    </Badge>
+                  )}
+                </div>
               </div>
             ))}
           </div>

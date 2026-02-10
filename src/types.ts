@@ -1,4 +1,4 @@
-export type PlatformType = 'linkedin' | 'x'
+export type PlatformType = 'linkedin' | 'x' | 'facebook' | 'instagram' | 'tiktok'
 
 export interface Connection {
   accessToken: string

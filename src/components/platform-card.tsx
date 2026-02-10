@@ -22,6 +22,9 @@ import { Separator } from '@/components/ui/separator'
 import {
   Linkedin,
   Twitter,
+  Facebook,
+  Instagram,
+  Music2,
   ExternalLink,
   Unlink,
   Loader2,
@@ -32,6 +35,7 @@ import {
 import type { PlatformType, PlatformCredentials, Connection } from '@/types'
 import {
   PLATFORMS,
+  PKCE_PLATFORMS,
   generateState,
   generatePKCE,
   getRedirectUri,
@@ -41,6 +45,9 @@ import { setOAuthState, setPkceVerifier } from '@/lib/storage'
 const PLATFORM_ICONS: Record<PlatformType, typeof Linkedin> = {
   linkedin: Linkedin,
   x: Twitter,
+  facebook: Facebook,
+  instagram: Instagram,
+  tiktok: Music2,
 }
 
 export function PlatformCard({
@@ -80,7 +87,7 @@ export function PlatformCard({
 
     const redirectUri = getRedirectUri(platform)
 
-    if (platform === 'x') {
+    if (PKCE_PLATFORMS.has(platform)) {
       const { verifier, challenge } = await generatePKCE()
       setPkceVerifier(verifier)
       window.location.href = info.authUrl(clientId, redirectUri, state, challenge)
@@ -138,10 +145,12 @@ export function PlatformCard({
         ) : (
           <>
             <div className="space-y-2">
-              <Label htmlFor={`${platform}-client-id`}>Client ID</Label>
+              <Label htmlFor={`${platform}-client-id`}>
+                {platform === 'tiktok' ? 'Client Key' : 'Client ID'}
+              </Label>
               <Input
                 id={`${platform}-client-id`}
-                placeholder="Enter your app's Client ID"
+                placeholder={`Enter your app's ${platform === 'tiktok' ? 'Client Key' : 'Client ID'}`}
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
               />
@@ -232,7 +241,19 @@ function Step({
   )
 }
 
-// --- Setup guide dialogs ---
+// --- Guide props type ---
+
+type GuideProps = { redirectUri: string; copied: boolean; onCopy: () => void }
+
+// --- Setup guide dialog ---
+
+const GUIDE_COMPONENTS: Record<PlatformType, React.FC<GuideProps>> = {
+  linkedin: LinkedInGuide,
+  x: XGuide,
+  facebook: FacebookGuide,
+  instagram: InstagramGuide,
+  tiktok: TikTokGuide,
+}
 
 function SetupGuideDialog({
   platform,
@@ -245,6 +266,7 @@ function SetupGuideDialog({
   copied: boolean
   onCopy: () => void
 }) {
+  const Guide = GUIDE_COMPONENTS[platform]
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -254,25 +276,15 @@ function SetupGuideDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        {platform === 'linkedin' ? (
-          <LinkedInGuide redirectUri={redirectUri} copied={copied} onCopy={onCopy} />
-        ) : (
-          <XGuide redirectUri={redirectUri} copied={copied} onCopy={onCopy} />
-        )}
+        <Guide redirectUri={redirectUri} copied={copied} onCopy={onCopy} />
       </DialogContent>
     </Dialog>
   )
 }
 
-function LinkedInGuide({
-  redirectUri,
-  copied,
-  onCopy,
-}: {
-  redirectUri: string
-  copied: boolean
-  onCopy: () => void
-}) {
+// --- LinkedIn Guide ---
+
+function LinkedInGuide({ redirectUri, copied, onCopy }: GuideProps) {
   return (
     <>
       <DialogHeader>
@@ -379,15 +391,9 @@ function LinkedInGuide({
   )
 }
 
-function XGuide({
-  redirectUri,
-  copied,
-  onCopy,
-}: {
-  redirectUri: string
-  copied: boolean
-  onCopy: () => void
-}) {
+// --- X Guide ---
+
+function XGuide({ redirectUri, copied, onCopy }: GuideProps) {
   return (
     <>
       <DialogHeader>
@@ -494,6 +500,330 @@ function XGuide({
             <li>
               Access tokens expire after 2 hours. If posting fails, try
               reconnecting from this page.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// --- Facebook Guide ---
+
+function FacebookGuide({ redirectUri, copied, onCopy }: GuideProps) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Facebook className="h-5 w-5" />
+          Setting up Facebook
+        </DialogTitle>
+        <DialogDescription>
+          Follow these steps to create a Facebook app and get your App ID and
+          App Secret. Posts are published to your Facebook Page.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-5 pt-2">
+        <Step number={1} title="Create a Facebook App">
+          <p>
+            Go to{' '}
+            <a
+              href="https://developers.facebook.com/apps/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              Meta for Developers <ExternalLink className="h-3 w-3" />
+            </a>{' '}
+            and click <strong>Create App</strong>.
+          </p>
+          <p>
+            Select <strong>Other</strong> as the use case, then choose{' '}
+            <strong>Business</strong> as the app type. Give it a name (e.g.
+            &ldquo;Social Publisher&rdquo;).
+          </p>
+        </Step>
+
+        <Separator />
+
+        <Step number={2} title="Add Facebook Login Product">
+          <p>
+            In your app&apos;s dashboard, click <strong>Add Product</strong> and
+            find <strong>Facebook Login</strong>. Click <strong>Set Up</strong> and
+            choose <strong>Web</strong>.
+          </p>
+          <p>
+            Under <strong>Facebook Login &gt; Settings</strong>, add the
+            following as a valid OAuth redirect URI:
+          </p>
+          <CopyableUrl url={redirectUri} copied={copied} onCopy={onCopy} />
+        </Step>
+
+        <Separator />
+
+        <Step number={3} title="Configure Permissions">
+          <p>
+            Go to <strong>App Review &gt; Permissions and Features</strong> and
+            request these permissions:
+          </p>
+          <ul className="list-disc pl-4 space-y-1 mt-1">
+            <li>
+              <strong>pages_manage_posts</strong> &mdash; allows publishing to
+              your Pages
+            </li>
+            <li>
+              <strong>pages_read_engagement</strong> &mdash; allows reading Page
+              info
+            </li>
+            <li>
+              <strong>pages_show_list</strong> &mdash; allows listing your Pages
+            </li>
+          </ul>
+          <p className="mt-1">
+            While in development mode, these work for your own account without
+            review. For other users, submit for App Review.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <Step number={4} title="Copy Your Credentials">
+          <p>
+            Go to <strong>Settings &gt; Basic</strong>. Copy the{' '}
+            <strong>App ID</strong> (this is the Client ID) and{' '}
+            <strong>App Secret</strong> (this is the Client Secret) and paste
+            them into the fields on this page.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <div className="rounded-md border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground mb-1">Important notes</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>
+              Facebook API posts are published to a <strong>Page</strong> you
+              manage, not your personal profile. Make sure you have at least one
+              Facebook Page.
+            </li>
+            <li>
+              In development mode, only app administrators and testers can use
+              the app.
+            </li>
+            <li>
+              Page access tokens do not expire once exchanged for a long-lived
+              token.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// --- Instagram Guide ---
+
+function InstagramGuide({ redirectUri, copied, onCopy }: GuideProps) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Instagram className="h-5 w-5" />
+          Setting up Instagram
+        </DialogTitle>
+        <DialogDescription>
+          Instagram uses the Facebook developer platform. You need a Facebook
+          App and an Instagram Business or Creator account.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-5 pt-2">
+        <Step number={1} title="Prerequisites">
+          <ul className="list-disc pl-4 space-y-1">
+            <li>
+              An <strong>Instagram Business</strong> or{' '}
+              <strong>Creator</strong> account (switch in Instagram app under
+              Settings &gt; Account type).
+            </li>
+            <li>
+              A <strong>Facebook Page</strong> linked to your Instagram account
+              (link it in Instagram &gt; Settings &gt; Linked accounts).
+            </li>
+          </ul>
+        </Step>
+
+        <Separator />
+
+        <Step number={2} title="Create a Facebook App">
+          <p>
+            Go to{' '}
+            <a
+              href="https://developers.facebook.com/apps/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              Meta for Developers <ExternalLink className="h-3 w-3" />
+            </a>{' '}
+            and create a <strong>Business</strong> app (or reuse your Facebook
+            app if you already have one).
+          </p>
+        </Step>
+
+        <Separator />
+
+        <Step number={3} title="Add Instagram Products">
+          <p>
+            In your app dashboard, add the{' '}
+            <strong>Instagram Graph API</strong> product. Then go to{' '}
+            <strong>Facebook Login &gt; Settings</strong> and add this redirect
+            URI:
+          </p>
+          <CopyableUrl url={redirectUri} copied={copied} onCopy={onCopy} />
+          <p className="mt-2">
+            Request these permissions under{' '}
+            <strong>App Review &gt; Permissions</strong>:
+          </p>
+          <ul className="list-disc pl-4 space-y-1 mt-1">
+            <li>
+              <strong>instagram_basic</strong> &mdash; read account info
+            </li>
+            <li>
+              <strong>instagram_content_publish</strong> &mdash; publish media
+            </li>
+            <li>
+              <strong>pages_show_list</strong> and{' '}
+              <strong>pages_read_engagement</strong>
+            </li>
+          </ul>
+        </Step>
+
+        <Separator />
+
+        <Step number={4} title="Copy Your Credentials">
+          <p>
+            Go to <strong>Settings &gt; Basic</strong>. The{' '}
+            <strong>App ID</strong> is the Client ID and the{' '}
+            <strong>App Secret</strong> is the Client Secret.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <div className="rounded-md border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground mb-1">Important notes</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>
+              Instagram API <strong>requires media</strong> (photo or video) for
+              every post. Text-only posts are not supported. Media upload
+              support is coming soon.
+            </li>
+            <li>
+              Only Business and Creator accounts can publish via the API.
+              Personal accounts are not supported.
+            </li>
+            <li>
+              Instagram and Facebook share the same developer app &mdash; you
+              can use the same App ID for both.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// --- TikTok Guide ---
+
+function TikTokGuide({ redirectUri, copied, onCopy }: GuideProps) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Music2 className="h-5 w-5" />
+          Setting up TikTok
+        </DialogTitle>
+        <DialogDescription>
+          Follow these steps to create a TikTok developer app and get your
+          Client Key and Client Secret.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-5 pt-2">
+        <Step number={1} title="Register as a Developer">
+          <p>
+            Go to the{' '}
+            <a
+              href="https://developers.tiktok.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              TikTok for Developers <ExternalLink className="h-3 w-3" />
+            </a>{' '}
+            and sign in with your TikTok account. Complete the developer
+            registration if prompted.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <Step number={2} title="Create an App">
+          <p>
+            In the developer portal, go to <strong>Manage apps</strong> and
+            click <strong>Create app</strong>. Fill in the app name, description,
+            and select the appropriate category.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <Step number={3} title="Configure Login Kit &amp; Permissions">
+          <p>
+            In your app settings, enable <strong>Login Kit</strong> and{' '}
+            <strong>Content Posting API</strong>. Under Login Kit configuration:
+          </p>
+          <ul className="list-disc pl-4 space-y-1 mt-1">
+            <li>
+              Set <strong>Redirect URI</strong> to the URL below
+            </li>
+            <li>
+              Enable scopes: <strong>user.info.basic</strong> and{' '}
+              <strong>video.publish</strong>
+            </li>
+          </ul>
+          <div className="mt-2">
+            <CopyableUrl url={redirectUri} copied={copied} onCopy={onCopy} />
+          </div>
+        </Step>
+
+        <Separator />
+
+        <Step number={4} title="Copy Your Credentials">
+          <p>
+            In your app&apos;s settings page, find the{' '}
+            <strong>Client Key</strong> and <strong>Client Secret</strong>. Copy
+            both and paste them into the fields on this page.
+          </p>
+        </Step>
+
+        <Separator />
+
+        <div className="rounded-md border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground mb-1">Important notes</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>
+              TikTok&apos;s Content Posting API <strong>requires video or
+              photo</strong> content. Text-only posts are not supported. Media
+              upload support is coming soon.
+            </li>
+            <li>
+              Your app needs to be approved by TikTok before it can be used by
+              other users. In sandbox mode, only the developer account works.
+            </li>
+            <li>
+              Access tokens expire after 24 hours. Refresh tokens last 365 days.
             </li>
           </ul>
         </div>

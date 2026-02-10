@@ -1,6 +1,9 @@
 import { PlatformCard } from '@/components/platform-card'
 import { ProfileManager } from '@/components/profile-manager'
 import { useApp } from '@/context'
+import type { PlatformType } from '@/types'
+
+const PLATFORM_ORDER: PlatformType[] = ['linkedin', 'x', 'facebook', 'instagram', 'tiktok']
 
 export function SettingsPage() {
   const {
@@ -42,23 +45,18 @@ export function SettingsPage() {
             </p>
           </div>
 
-          <PlatformCard
-            platform="linkedin"
-            credentials={settings.platformCredentials.linkedin}
-            connection={activeProfile.connections.linkedin}
-            onSaveCredentials={(creds) =>
-              updatePlatformCredentials('linkedin', creds)
-            }
-            onDisconnect={() => disconnectPlatform('linkedin')}
-          />
-
-          <PlatformCard
-            platform="x"
-            credentials={settings.platformCredentials.x}
-            connection={activeProfile.connections.x}
-            onSaveCredentials={(creds) => updatePlatformCredentials('x', creds)}
-            onDisconnect={() => disconnectPlatform('x')}
-          />
+          {PLATFORM_ORDER.map((platform) => (
+            <PlatformCard
+              key={platform}
+              platform={platform}
+              credentials={settings.platformCredentials[platform]}
+              connection={activeProfile.connections[platform]}
+              onSaveCredentials={(creds) =>
+                updatePlatformCredentials(platform, creds)
+              }
+              onDisconnect={() => disconnectPlatform(platform)}
+            />
+          ))}
         </>
       )}
     </div>

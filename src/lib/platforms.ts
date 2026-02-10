@@ -17,7 +17,34 @@ export const PLATFORMS: Record<PlatformType, PlatformInfo> = {
     authUrl: (clientId, redirectUri, state, codeChallenge) =>
       `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent('tweet.read tweet.write users.read offline.access')}&code_challenge=${encodeURIComponent(codeChallenge || '')}&code_challenge_method=S256`,
   },
+  facebook: {
+    type: 'facebook',
+    name: 'Facebook',
+    color: '#1877F2',
+    maxLength: 63206,
+    authUrl: (clientId, redirectUri, state) =>
+      `https://www.facebook.com/v21.0/dialog/oauth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent('pages_manage_posts,pages_read_engagement,pages_show_list')}`,
+  },
+  instagram: {
+    type: 'instagram',
+    name: 'Instagram',
+    color: '#E4405F',
+    maxLength: 2200,
+    authUrl: (clientId, redirectUri, state) =>
+      `https://www.facebook.com/v21.0/dialog/oauth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent('instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement')}`,
+  },
+  tiktok: {
+    type: 'tiktok',
+    name: 'TikTok',
+    color: '#ff0050',
+    maxLength: 2200,
+    authUrl: (clientId, redirectUri, state, codeChallenge) =>
+      `https://www.tiktok.com/v2/auth/authorize/?client_key=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent('user.info.basic,video.publish')}&code_challenge=${encodeURIComponent(codeChallenge || '')}&code_challenge_method=S256`,
+  },
 }
+
+/** Platforms that use PKCE for OAuth */
+export const PKCE_PLATFORMS: ReadonlySet<PlatformType> = new Set(['x', 'tiktok'])
 
 export function generateState(): string {
   return crypto.randomUUID()
