@@ -50,7 +50,7 @@ function RootLayout() {
             activeProfile={profilesHook.activeProfile}
             onSwitchProfile={profilesHook.switchProfile}
           />
-          <main className="container px-4 py-8">
+          <main className="container mx-auto px-4 py-8">
             <Outlet />
           </main>
         </div>
